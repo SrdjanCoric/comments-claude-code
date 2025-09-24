@@ -9,7 +9,7 @@ const commentSchema = z.object({
 
 export const replySchema = commentSchema
   .extend({
-    // comment_id: z.string(),
+    comment_id: z.string(),
   })
   .loose();
 
