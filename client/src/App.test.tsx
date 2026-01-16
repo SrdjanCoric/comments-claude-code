@@ -41,7 +41,7 @@ it("renders authors name", async () => {
   expect(author).toBeInTheDocument();
 });
 
-it("removes a link when show more replies is clicked", async () => {
+it("removes show more button when all replies are loaded", async () => {
   const mockedComments = [
     {
       id: "4b2d74e6-7d1a-4ba3-9e95-0f52ee8ebc6e",
@@ -73,14 +73,14 @@ it("removes a link when show more replies is clicked", async () => {
   mockedGetComments.mockResolvedValue(mockedComments);
   mockedGetMoreReplies.mockResolvedValue(mockedReplies);
   render(<App />);
-  const link = await screen.findByRole("link", { name: /Show More Replies/i });
+  const showMoreButton = await screen.findByRole("button", { name: /Show.*more.*reply/i });
   const user = userEvent.setup();
-  expect(link).toBeInTheDocument();
+  expect(showMoreButton).toBeInTheDocument();
 
-  await user.click(link);
+  await user.click(showMoreButton);
 
-  const removedLink = screen.queryByRole("link", { name: /Show More Replies/ });
-  expect(removedLink).not.toBeInTheDocument();
+  const removedButton = screen.queryByRole("button", { name: /Show.*more.*reply/i });
+  expect(removedButton).not.toBeInTheDocument();
 });
 
 it("removes comment from list when delete button is clicked", async () => {

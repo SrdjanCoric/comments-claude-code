@@ -98,14 +98,20 @@ const App = () => {
   };
 
   return (
-    <div>
-      <Comments
-        comments={comments}
-        onMoreReplies={handleMoreReplies}
-        onDeleteComment={handleDeleteComment}
-        onDeleteReply={handleDeleteReply}
-      />
-      <AddCommentForm onSubmit={handleSubmit} />
+    <div className="app">
+      <header className="page-header">
+        <h1 className="page-title">Discussion</h1>
+        <p className="page-subtitle">Join the conversation</p>
+      </header>
+      <main className="main-content">
+        <AddCommentForm onSubmit={handleSubmit} />
+        <Comments
+          comments={comments}
+          onMoreReplies={handleMoreReplies}
+          onDeleteComment={handleDeleteComment}
+          onDeleteReply={handleDeleteReply}
+        />
+      </main>
     </div>
   );
 };

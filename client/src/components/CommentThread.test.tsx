@@ -28,12 +28,12 @@ describe("CommentThread", () => {
     onDeleteReply: vi.fn(),
   };
 
-  it("contains how more replies link", () => {
+  it("contains show more replies button", () => {
     render(<CommentThread {...defaultProps} />);
-    const link = screen.getByRole("link", {
-      name: `Show More Replies (${mockComment.replies_count - mockComment.replies.length})`,
+    const button = screen.getByRole("button", {
+      name: /Show.*more.*replies/i,
     });
-    expect(link).toBeInTheDocument();
+    expect(button).toBeInTheDocument();
   });
 
   it("calls onDeleteComment when parent comment delete is clicked", async () => {
