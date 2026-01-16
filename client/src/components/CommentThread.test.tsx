@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi } from "vitest";
 import CommentThread from "./CommentThread";
 
-it("contains how more replies link", () => {
+describe("CommentThread", () => {
   const mockComment = {
     id: "4b2d74e6-7d1a-4ba3-9e95-0f52ee8ebc6e",
     author: "Reed Fisher",
@@ -18,9 +20,41 @@ it("contains how more replies link", () => {
       },
     ],
   };
-  render(<CommentThread comment={mockComment} onMoreReplies={vi.fn()} />);
-  const link = screen.getByRole("link", {
-    name: `Show More Replies (${mockComment.replies_count - 1})`,
+
+  const defaultProps = {
+    comment: mockComment,
+    onMoreReplies: vi.fn(),
+    onDeleteComment: vi.fn(),
+    onDeleteReply: vi.fn(),
+  };
+
+  it("contains show more replies button", () => {
+    render(<CommentThread {...defaultProps} />);
+    const button = screen.getByRole("button", {
+      name: /Show.*more.*replies/i,
+    });
+    expect(button).toBeInTheDocument();
   });
-  expect(link).toBeInTheDocument();
+
+  it("calls onDeleteComment when parent comment delete is clicked", async () => {
+    const onDeleteComment = vi.fn();
+    render(<CommentThread {...defaultProps} onDeleteComment={onDeleteComment} />);
+    const user = userEvent.setup();
+    const deleteButtons = screen.getAllByRole("button", { name: /delete comment/i });
+
+    await user.click(deleteButtons[0]);
+
+    expect(onDeleteComment).toHaveBeenCalledWith(mockComment.id);
+  });
+
+  it("calls onDeleteReply when reply delete is clicked", async () => {
+    const onDeleteReply = vi.fn();
+    render(<CommentThread {...defaultProps} onDeleteReply={onDeleteReply} />);
+    const user = userEvent.setup();
+    const deleteButtons = screen.getAllByRole("button", { name: /delete comment/i });
+
+    await user.click(deleteButtons[1]);
+
+    expect(onDeleteReply).toHaveBeenCalledWith(mockComment.id, mockComment.replies[0].id);
+  });
 });

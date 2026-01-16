@@ -1,6 +1,6 @@
 import App from "./App";
 import { render, screen } from "@testing-library/react";
-import { getComments, getMoreReplies } from "./services/comments";
+import { deleteComment, deleteReply, getComments, getMoreReplies } from "./services/comments";
 import userEvent from "@testing-library/user-event";
 // import * as commentService from "./services/comments"
 
@@ -8,6 +8,8 @@ vi.mock("./services/comments.ts");
 
 const mockedGetComments = vi.mocked(getComments);
 const mockedGetMoreReplies = vi.mocked(getMoreReplies);
+const mockedDeleteComment = vi.mocked(deleteComment);
+const mockedDeleteReply = vi.mocked(deleteReply);
 
 afterEach(() => {
   vi.resetAllMocks();
@@ -39,7 +41,7 @@ it("renders authors name", async () => {
   expect(author).toBeInTheDocument();
 });
 
-it("removes a link when show more replies is clicked", async () => {
+it("removes show more button when all replies are loaded", async () => {
   const mockedComments = [
     {
       id: "4b2d74e6-7d1a-4ba3-9e95-0f52ee8ebc6e",
@@ -71,23 +73,82 @@ it("removes a link when show more replies is clicked", async () => {
   mockedGetComments.mockResolvedValue(mockedComments);
   mockedGetMoreReplies.mockResolvedValue(mockedReplies);
   render(<App />);
-  const link = await screen.findByRole("link", { name: /Show More Replies/i });
+  const showMoreButton = await screen.findByRole("button", { name: /Show.*more.*reply/i });
   const user = userEvent.setup();
-  expect(link).toBeInTheDocument();
+  expect(showMoreButton).toBeInTheDocument();
 
-  await user.click(link);
+  await user.click(showMoreButton);
 
-  const removedLink = screen.queryByRole("link", { name: /Show More Replies/ });
-  expect(removedLink).not.toBeInTheDocument();
+  const removedButton = screen.queryByRole("button", { name: /Show.*more.*reply/i });
+  expect(removedButton).not.toBeInTheDocument();
 });
 
-// waitFor + getByRole => findByRole
+it("removes comment from list when delete button is clicked", async () => {
+  const mockedComments = [
+    {
+      id: "comment-1",
+      author: "Reed Fisher",
+      body: "First comment",
+      postedAt: 1550488214207,
+      replies_count: 0,
+      replies: [],
+    },
+    {
+      id: "comment-2",
+      author: "Jane Doe",
+      body: "Second comment",
+      postedAt: 1550488214208,
+      replies_count: 0,
+      replies: [],
+    },
+  ];
+  mockedGetComments.mockResolvedValue(mockedComments);
+  mockedDeleteComment.mockResolvedValue(undefined);
 
-// waitFor + getByText => findByText
+  render(<App />);
+  const user = userEvent.setup();
 
-// it("renders authors name", async () => {
-//   render(<App />);
+  await screen.findByRole("heading", { name: /Reed Fisher/i });
+  const deleteButtons = screen.getAllByRole("button", { name: /delete comment/i });
 
-//   const author = await screen.findByRole("heading", { name: /Reed/ });
-//   expect(author).toBeInTheDocument();
-// });
+  await user.click(deleteButtons[0]);
+
+  expect(mockedDeleteComment).toHaveBeenCalledWith("comment-1");
+  expect(screen.queryByRole("heading", { name: /Reed Fisher/i })).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /Jane Doe/i })).toBeInTheDocument();
+});
+
+it("removes reply from list when delete button is clicked", async () => {
+  const mockedComments = [
+    {
+      id: "comment-1",
+      author: "Reed Fisher",
+      body: "Parent comment",
+      postedAt: 1550488214207,
+      replies_count: 1,
+      replies: [
+        {
+          id: "reply-1",
+          comment_id: "comment-1",
+          author: "Kathleen Nikolaus",
+          body: "Reply text",
+          postedAt: 1550419941546,
+        },
+      ],
+    },
+  ];
+  mockedGetComments.mockResolvedValue(mockedComments);
+  mockedDeleteReply.mockResolvedValue(undefined);
+
+  render(<App />);
+  const user = userEvent.setup();
+
+  await screen.findByRole("heading", { name: /Kathleen Nikolaus/i });
+  const deleteButtons = screen.getAllByRole("button", { name: /delete comment/i });
+
+  await user.click(deleteButtons[1]);
+
+  expect(mockedDeleteReply).toHaveBeenCalledWith("comment-1", "reply-1");
+  expect(screen.queryByRole("heading", { name: /Kathleen Nikolaus/i })).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /Reed Fisher/i })).toBeInTheDocument();
+});
