@@ -23,3 +23,14 @@ export const createComment = async (newComment: NewComment) => {
   const { data } = await axios.post("/api/comments", { ...newComment });
   return commentWithRepliesSchema.parse(data);
 };
+
+export const deleteComment = async (commentId: string): Promise<void> => {
+  await axios.delete(`/api/comments/${commentId}`);
+};
+
+export const deleteReply = async (
+  commentId: string,
+  replyId: string
+): Promise<void> => {
+  await axios.delete(`/api/comment_replies/${commentId}/${replyId}`);
+};
